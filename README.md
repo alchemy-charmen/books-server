@@ -5,6 +5,13 @@ Create express app that connects with heroku
     - Build server (sever.js)
     - Include node modules express, pg, .env
     - design schema for books data
+        - book_id
+        - author
+        - title
+        - isbn
+        - image_url
+        - description
+        
     - Seed data - create table of books in postgres locally and in heroku
     - Deploy to heroku
 
