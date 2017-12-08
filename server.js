@@ -17,6 +17,11 @@ app.get('/api/v1/books', (req, res) => {
         .then(data => res.send(data.rows));
 });
 
+app.get('*', (req, res) => {
+    console.log('-----------------------hello!');
+    res.send('goodbye');
+})
+
 loadDB();
 
 app.listen(PORT, () => {
