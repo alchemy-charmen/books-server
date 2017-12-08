@@ -22,7 +22,7 @@ app.get('*', (req, res) => {
     res.send('goodbye');
 })
 
-// loadDB();
+loadDB();
 
 app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
