@@ -20,7 +20,7 @@ app.get('/api/v1/books', (req, res) => {
 app.get('*', (req, res) => {
     console.log('-----------------------hello!');
     res.send('goodbye');
-})
+});
 
 loadDB();
 
