@@ -17,6 +17,13 @@ app.get('/api/v1/books', (req, res) => {
         .then(data => res.send(data.rows));
 });
 
+app.get('/api/v1/books/:id', (req, res) => {
+    client.query(
+        `SELECT * FROM books WHERE id = $1`, [req.params.id])
+        .then(data => res.send(data.rows))
+        .catch(console.error);
+});
+
 app.get('*', (req, res) => {
     console.log('-----------------------hello!');
     res.send('goodbye');
