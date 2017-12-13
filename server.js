@@ -7,13 +7,35 @@ const pg = require('pg');
 const fs = require('fs');
 const PORT = process.env.PORT;
 const cors = require('cors');
-
+const superagent = require('superagent');
+const G_API_KEY = process.env.GOOGLE_API_KEY;
 app.use(cors());
 app.use(bp.json());
 app.use(bp.urlencoded({extended: true}));
 const client = new pg.Client(process.env.DATABASE_URL);
 
 client.connect();
+
+app.get('/api/v1/books/search', (req, res) => {
+    const googleUrl = 'https://www.googleapis.com/books/v1/volumes?q=';
+    const searchFor = req.query.search;
+
+    superagent
+        .get(`${googleUrl}intitle:${searchFor}&key=${G_API_KEY}`)
+        .end((err,resp)=> {
+            const smallBooks = resp.body.items.slice(0,10).map(book => {
+                return{
+                    title: book.volumeInfo.title,
+                    description: book.volumeInfo.description,
+                    author: book.volumeInfo.authors[0],
+                    isbn: book.volumeInfo.industryIdentifiers[0].identifier,
+                    image_url: book.volumeInfo.imageLinks.thumbnail
+                };
+            });
+            res.send(smallBooks);
+        });
+
+});
 
 app.get('/api/v1/books', (req, res) => {
     client.query(`SELECT * FROM books;`)
