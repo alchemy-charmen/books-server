@@ -20,8 +20,12 @@ app.get('/api/v1/books/search', (req, res) => {
     const googleUrl = 'https://www.googleapis.com/books/v1/volumes?q=';
     const searchFor = req.query.search;
 
+    const fullUrl = `${googleUrl}intitle:${searchFor}&key=${G_API_KEY}`;
+    console.log(fullUrl);
+
     superagent
-        .get(`${googleUrl}intitle:${searchFor}&key=${G_API_KEY}`)
+        .get(fullUrl)
+
         .end((err,resp)=> {
             const smallBooks = resp.body.items.slice(0,10).map(book => {
                 return{
