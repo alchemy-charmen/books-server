@@ -7,13 +7,39 @@ const pg = require('pg');
 const fs = require('fs');
 const PORT = process.env.PORT;
 const cors = require('cors');
-
+const superagent = require('superagent');
+const G_API_KEY = process.env.GOOGLE_API_KEY;
 app.use(cors());
 app.use(bp.json());
 app.use(bp.urlencoded({extended: true}));
 const client = new pg.Client(process.env.DATABASE_URL);
 
 client.connect();
+
+app.get('/api/v1/books/search', (req, res) => {
+    const googleUrl = 'https://www.googleapis.com/books/v1/volumes?q=';
+    const searchFor = req.query.search;
+
+    const fullUrl = `${googleUrl}intitle:${searchFor}&key=${G_API_KEY}`;
+    console.log(fullUrl);
+
+    superagent
+        .get(fullUrl)
+
+        .end((err,resp)=> {
+            const smallBooks = resp.body.items.slice(0,10).map(book => {
+                return{
+                    title: book.volumeInfo.title,
+                    description: book.volumeInfo.description,
+                    author: book.volumeInfo.authors[0],
+                    isbn: book.volumeInfo.industryIdentifiers[0].identifier,
+                    image_url: book.volumeInfo.imageLinks.thumbnail
+                };
+            });
+            res.send(smallBooks);
+        });
+
+});
 
 app.get('/api/v1/books', (req, res) => {
     client.query(`SELECT * FROM books;`)
@@ -42,16 +68,31 @@ app.put('/api/v1/books/:id', (req, res) => {
         .catch(console.error);
 });
 
-app.get('*', (req, res) => {
-    console.log('-----------------------hello!');
-    res.send('goodbye');
+app.get('/api/v1/books/new', (req, res) => {
+    console.log('Heard the request', req);
+    console.log(res);
 });
 
-// this set of functions is not working.... This query, Book.protoype.toHtml, and bookView.submit
-// app.post('/api/v1/books', (req, res) => {
-//     client.query(`INSERT INTO books (author, title, isbn, image_url, description) VALUES ($1, $2, $3, $4, $5)`,
-//         [req.body.author, req.body.title, req.body.isbn, req.body.image_url, req.body.description]);
-// });
+app.get('*', (req, res) => {
+    console.log('-----------------------hello!');
+    res.send('Nothing currently on this page!');
+});
+
+app.post('/api/v1/books', (req, res) => {
+    client.query(`
+        INSERT INTO books (title, author, isbn, image_url, description) VALUES ($1, $2, $3, $4, $5);
+        `,[
+            req.body.title,
+            req.body.author,
+            req.body.isbn,
+            req.body.image_url,
+            req.body.description,
+            req.params.id
+        ])
+        .then(data => res.status(204).send('Book Updated!'))
+        .catch(console.error);
+});
+
 
 loadDB();
 
